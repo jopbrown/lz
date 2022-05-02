@@ -11,11 +11,13 @@ import (
 
 func sleepAndError(d time.Duration, err error) error {
 	time.Sleep(d)
+	// fmt.Printf("sleep %v and return err: %v\n", d, err)
 	return err
 }
 
 func sleepAndPanic(d time.Duration, err error) {
 	time.Sleep(d)
+	// fmt.Printf("sleep %v and panic err: %v\n", d, err)
 	if err != nil {
 		panic(err)
 	}
@@ -24,9 +26,10 @@ func sleepAndPanic(d time.Duration, err error) {
 func sleepAndPanicOrError(d time.Duration, perr, rerr error) error {
 	time.Sleep(d)
 	if perr != nil {
+		// fmt.Printf("sleep %v and panic err: %v\n", d, perr)
 		panic(perr)
 	}
-
+	// fmt.Printf("sleep %v and return err: %v\n", d, rerr)
 	return rerr
 }
 
@@ -64,13 +67,14 @@ func TestCall(t *testing.T) {
 func TestCallParallel(t *testing.T) {
 	err := lz.CallInParallel(
 		lz.CE2(sleepAndError, 3*time.Microsecond, errWrong1),
-		lz.CE2(sleepAndError, 3*time.Microsecond, errWrong2),
-		lz.CP2(sleepAndPanic, 1*time.Microsecond, errGolden),
-		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong3),
+		lz.CP2(sleepAndPanic, 3*time.Microsecond, errWrong2),
+		lz.CP2(sleepAndPanic, 1*time.Microsecond, errWrong3),
 		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong4),
+		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong5),
 	)
 
-	assert.Error(t, errGolden, err)
+	// assert.Equal(t, errGolden, err)
+	assert.Error(t, err)
 
 	err = lz.CallInParallel(
 		lz.CE2(sleepAndError, 3*time.Microsecond, nil),
@@ -85,14 +89,15 @@ func TestCallParallel(t *testing.T) {
 
 func TestCallParallelLimit(t *testing.T) {
 	err := lz.CallInParallelLimit(1,
-		lz.CE2(sleepAndError, 3*time.Microsecond, errGolden),
-		lz.CE2(sleepAndError, 3*time.Microsecond, errWrong1),
-		lz.CE2(sleepAndError, 1*time.Microsecond, errWrong2),
-		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong3),
+		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong1),
+		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong2),
+		lz.CE2(sleepAndError, 1*time.Microsecond, errWrong3),
 		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong4),
+		lz.CE2(sleepAndError, 2*time.Microsecond, errWrong5),
 	)
 
-	assert.Error(t, errGolden, err)
+	// assert.Equal(t, errGolden, err)
+	assert.Error(t, err)
 
 	err = lz.CallInParallelLimit(1,
 		lz.CE2(sleepAndError, 3*time.Microsecond, nil),
